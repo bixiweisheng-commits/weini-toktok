@@ -8,12 +8,14 @@ interface AnalysisDisplayProps {
 
 // Simple Radar Chart Component
 const RadarChart = ({ data }: { data: AnalysisResult['viralScoreBreakdown'] }) => {
+  if (!data) return null;
+
   const size = 200;
   const center = size / 2;
   const radius = (size - 40) / 2;
   
   // Normalize scores to radius
-  const normalize = (score: number) => (score / 100) * radius;
+  const normalize = (score: number) => ((score || 0) / 100) * radius;
 
   // 4 Axes: Top, Right, Bottom, Left
   const metrics = [
@@ -103,6 +105,8 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ data }) => {
     setCopiedSection(section);
     setTimeout(() => setCopiedSection(null), 2000);
   };
+
+  const structure = data.structure || [];
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
@@ -225,45 +229,51 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ data }) => {
         </h3>
         
         <div className="space-y-3">
-          {data.structure.map((scene, idx) => (
-            <div key={idx} className="bg-[#18181b] border border-[#27272a] rounded-lg p-4 flex flex-col md:flex-row gap-4 items-start group hover:border-gray-600 transition-colors">
-               <div className="flex items-center gap-3 md:w-32 shrink-0">
-                  <div className="bg-gray-800 rounded px-2 py-1 text-xs font-mono text-cyan-400 border border-gray-700 whitespace-nowrap">
-                      {scene.timestamp}
-                  </div>
-               </div>
-               
-               <div className="flex-1 space-y-3">
-                   <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-0.5 rounded bg-pink-500/10 text-pink-400 border border-pink-500/20 font-bold">
-                        {scene.hookType}
-                      </span>
-                   </div>
-                   
-                   {/* Visual */}
-                   <div className="flex gap-2">
-                      <Video className="w-4 h-4 text-gray-500 mt-0.5 shrink-0" />
-                      <div>
-                          <span className="text-xs text-gray-500 uppercase font-bold">画面 (Visual):</span>
-                          <p className="text-gray-300 text-sm">{scene.visualDescription}</p>
-                      </div>
-                   </div>
-
-                   {/* Audio */}
-                   <div className="flex gap-2 bg-[#09090b] p-2 rounded border border-[#27272a]/50">
-                      <Volume2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                      <div>
-                          <span className="text-xs text-green-500/80 uppercase font-bold">语音/音效 (Audio):</span>
-                          <p className="text-gray-300 text-sm font-medium">{scene.audioDescription}</p>
-                      </div>
-                   </div>
-
-                   <p className="text-gray-500 text-xs font-mono pt-1 border-t border-gray-800">
-                      Prompt Segment: {scene.soraPrompt}
-                   </p>
-               </div>
+          {structure.length === 0 ? (
+            <div className="p-4 text-gray-500 text-sm text-center border border-[#27272a] rounded-lg">
+                未能提取分镜结构 (No structural breakdown available).
             </div>
-          ))}
+          ) : (
+            structure.map((scene, idx) => (
+              <div key={idx} className="bg-[#18181b] border border-[#27272a] rounded-lg p-4 flex flex-col md:flex-row gap-4 items-start group hover:border-gray-600 transition-colors">
+                <div className="flex items-center gap-3 md:w-32 shrink-0">
+                    <div className="bg-gray-800 rounded px-2 py-1 text-xs font-mono text-cyan-400 border border-gray-700 whitespace-nowrap">
+                        {scene.timestamp || `Shot ${idx + 1}`}
+                    </div>
+                </div>
+                
+                <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-0.5 rounded bg-pink-500/10 text-pink-400 border border-pink-500/20 font-bold">
+                          {scene.hookType}
+                        </span>
+                    </div>
+                    
+                    {/* Visual */}
+                    <div className="flex gap-2">
+                        <Video className="w-4 h-4 text-gray-500 mt-0.5 shrink-0" />
+                        <div>
+                            <span className="text-xs text-gray-500 uppercase font-bold">画面 (Visual):</span>
+                            <p className="text-gray-300 text-sm">{scene.visualDescription}</p>
+                        </div>
+                    </div>
+
+                    {/* Audio */}
+                    <div className="flex gap-2 bg-[#09090b] p-2 rounded border border-[#27272a]/50">
+                        <Volume2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                        <div>
+                            <span className="text-xs text-green-500/80 uppercase font-bold">语音/音效 (Audio):</span>
+                            <p className="text-gray-300 text-sm font-medium">{scene.audioDescription}</p>
+                        </div>
+                    </div>
+
+                    <p className="text-gray-500 text-xs font-mono pt-1 border-t border-gray-800">
+                        Prompt Segment: {scene.soraPrompt}
+                    </p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
       
