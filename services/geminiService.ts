@@ -50,47 +50,51 @@ export const analyzeVideo = async (
     : "User has NOT uploaded an image. You must construct the visual description purely based on the 'Product Description' provided.";
 
   const promptText = `
-    You are an expert TikTok Dropshipping Strategist and a Professional Video Director (Storyboard Artist).
+    You are an expert TikTok Dropshipping Strategist and a specialized **Sora 2 Prompt Engineer**.
     
     INPUTS:
-    1. A Viral Video (Reference for structure, camera angles, pacing, and editing).
-    2. Product Info: "${productDescription}"
-    3. Visual Context: ${imageContextPrompt}
+    1. **REFERENCE VIDEO**: A viral TikTok video (Analyze its structure, editing, and camera movement).
+    2. **MY PRODUCT SPECS**: "${productDescription}"
+    3. **VISUAL CONTEXT**: ${imageContextPrompt}
+
+    --------------------------------------------------
+    **CRITICAL ANALYSIS STEP 1: EDITING STRUCTURE DETECTION**
+    You must first determine if the Reference Video is:
+    - **Type A: Single Continuous Shot (One-Shot)**: No cuts, the camera moves continuously around the subject.
+    - **Type B: Multi-Cut (Montage)**: Fast cuts between different angles.
+    
+    *RULE*: If the video is **Type A (One-Shot)**, your output structure MUST contain ONLY "Shot 1" with a long duration (e.g., 0s-15s). Do NOT artificially break it into Shot 2, Shot 3. Describe the complex camera movement (e.g., "Orbiting," "Dolly In," "Tracking") within that single prompt block.
+    --------------------------------------------------
+
+    --------------------------------------------------
+    **CRITICAL ANALYSIS STEP 2: FEATURE INTEGRATION**
+    You cannot just "show the product". You must VISUALIZE the functions described in "${productDescription}".
+    - If the product is magnetic -> Visual: Show it snapping instantly onto a surface.
+    - If it's waterproof -> Visual: Show water pouring over it.
+    - If it's a beauty cream -> Visual: Show the texture being spread on skin.
+    
+    *RULE*: Every visual description MUST demonstrate a specific feature of MY PRODUCT, not the product in the reference video.
+    --------------------------------------------------
 
     TASKS:
 
     1. **Analyze Video Core**:
-       - **Video Summary**: Provide a concise 2-3 sentence summary of what happens in the video, the story arc, and the main selling angle.
-       - **Viral Score**: Rate from 0-100 and breakdown.
+       - Summary, Viral Score, Breakdown.
 
-    2. **Adapt Content**: Create a new script selling *MY PRODUCT* following the viral structure. Output in Chinese and English.
-
-    3. **Generate Structured Sora 2 Prompt (STRICT SHOT-BY-SHOT FORMAT)**: 
-       - **CRITICAL REQUIREMENT**: Do NOT write a paragraph.
-       - **FORMAT**: Structured list of shots (Storyboard style).
-       - **AUDIO ANALYSIS**: If there is a person speaking, you MUST describe the **Tone** (e.g., Excited, Sarcastic, Whisper) and the **Content**. If it's music only, describe the vibe.
+    2. **Adapt Script**: 
+       - Rewrite the script to sell *MY PRODUCT* using the reference video's hook and logic.
+    
+    3. **Generate Sora 2 Prompts (The most important part)**:
+       - Use "Sora 2 Physics" keywords: *Photorealistic, 8k, Ray-tracing, Newton-accurate physics, Macro lens, Anamorphic*.
+       - **Strictly follow the Editing Structure detected in Step 1.**
+       - **Strictly integrate Product Features from Step 2.**
        
-       - **TEMPLATE PER SHOT**:
-         "**Shot [N] ([Start Time] - [End Time])**
-          **Camera**: [Specific Movement: e.g., Close-up Zoom In / Wide Angle Pan Left / Handheld POV]
-          **Visual**: [Detailed visual description of my product being used]
-          **Audio**: [Tone/Speaker]: "[Spoken Words]" OR [Sound Effect/Music Vibe]
-          **Action**: [Specific physical action]"
-       
-       - **EXAMPLE OUTPUT**:
-         "Shot 1 (0s - 2s):
-          Camera: Static Medium Shot.
-          Visual: A woman holds the [my product] next to her face.
-          Audio: Sarcastic Tone: 'You surely don't need this...'
-          Action: She rolls her eyes and throws the product on the bed.
-          
-          Shot 2 (2s - 4s):
-          Camera: Fast Zoom In to Extreme Close-up.
-          Visual: The product texture is shown in high detail.
-          Audio: High Energy/Fast Paced: '...unless you hate saving money!'
-          Action: A finger points aggressively at the price tag."
+       **FORMATTING FOR SORA**:
+       - For One-Shot videos: Write a single, long, detailed paragraph describing the flow of the camera and the product action.
+       - For Multi-Cut videos: Break down frame by frame.
 
-    4. **Structure Breakdown**: Summarize the above in a JSON list.
+    4. **Structure Breakdown (JSON)**: 
+       - Summarize the shots. If One-Shot, this array should have size 1.
 
     Return the response in strictly valid JSON.
   `;
@@ -104,41 +108,41 @@ export const analyzeVideo = async (
         parts: parts,
       },
       config: {
-        systemInstruction: "You are a professional video director. You speak in camera shots, angles, and movements. You explicitly analyze audio tones and spoken dialogue.",
+        systemInstruction: "You are an AI film director. You are rigorous about 'Continuity'. If a video has no cuts, you never invent cuts. You are obsessed with showcasing specific product features visually.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
             title: { type: Type.STRING, description: "Title in Chinese" },
-            videoSummary: { type: Type.STRING, description: "A brief summary of the video's story/concept." },
+            videoSummary: { type: Type.STRING, description: "Brief summary." },
             viralScore: { type: Type.NUMBER, description: "Total Score 0-100" },
             viralScoreBreakdown: {
               type: Type.OBJECT,
               properties: {
-                hookStrength: { type: Type.NUMBER, description: "Score 0-100 for first 3 seconds" },
-                pacing: { type: Type.NUMBER, description: "Score 0-100 for editing rhythm" },
-                painPoint: { type: Type.NUMBER, description: "Score 0-100 for problem identification" },
-                callToAction: { type: Type.NUMBER, description: "Score 0-100 for sales closing" },
+                hookStrength: { type: Type.NUMBER },
+                pacing: { type: Type.NUMBER },
+                painPoint: { type: Type.NUMBER },
+                callToAction: { type: Type.NUMBER },
               }
             },
-            transcript: { type: Type.STRING, description: "Original transcript" },
-            rewrittenScriptCN: { type: Type.STRING, description: "Adapted script in Chinese" },
-            rewrittenScriptEN: { type: Type.STRING, description: "Adapted script in English" },
-            marketingStrategy: { type: Type.STRING, description: "Strategy analysis in Chinese" },
+            transcript: { type: Type.STRING },
+            rewrittenScriptCN: { type: Type.STRING },
+            rewrittenScriptEN: { type: Type.STRING },
+            marketingStrategy: { type: Type.STRING },
             consolidatedSoraPrompt: { 
               type: Type.STRING, 
-              description: "The formatted Shot-by-Shot prompt list including Audio context." 
+              description: "The FINAL prompt for Sora. If One-Shot, this is one long paragraph. If Multi-Cut, it is a list of shots." 
             },
             structure: {
               type: Type.ARRAY,
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  timestamp: { type: Type.STRING, description: "e.g., '00:00 - 00:03'" },
-                  visualDescription: { type: Type.STRING, description: "Scene description" },
-                  audioDescription: { type: Type.STRING, description: "Tone and spoken words (or music vibe)" },
-                  hookType: { type: Type.STRING, description: "Hook type" },
-                  soraPrompt: { type: Type.STRING, description: "Short prompt segment" }
+                  timestamp: { type: Type.STRING, description: "e.g., '00:00 - 00:15' for one shot, or '00:00-00:03' for cuts" },
+                  visualDescription: { type: Type.STRING, description: "How the PRODUCT FEATURE is shown." },
+                  audioDescription: { type: Type.STRING },
+                  hookType: { type: Type.STRING },
+                  soraPrompt: { type: Type.STRING }
                 }
               }
             }

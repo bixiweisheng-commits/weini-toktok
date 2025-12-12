@@ -4,7 +4,7 @@ import { analyzeVideo } from './services/geminiService';
 import VideoUpload from './components/VideoUpload';
 import ProductInput from './components/ProductInput';
 import AnalysisDisplay from './components/AnalysisDisplay';
-import { Activity, Wand2, Zap, Download, KeyRound, Save, RefreshCw } from 'lucide-react';
+import { Activity, Wand2, Zap, Download, KeyRound, Save, RefreshCw, RotateCcw } from 'lucide-react';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -53,6 +53,9 @@ const App: React.FC = () => {
 
   const handleFileSelect = (file: File) => {
     setVideoFile(file);
+    // Do not clear result immediately if we want to allow comparing, 
+    // but usually new video means new analysis. 
+    // Let's clear to avoid confusion.
     setAnalysisResult(null);
     setAppState(AppState.IDLE);
     setError(null);
@@ -274,7 +277,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Action Button */}
-                {videoFile && appState !== AppState.ANALYZING && appState !== AppState.SUCCESS && (
+                {videoFile && appState !== AppState.ANALYZING && (
                     <button
                         onClick={handleAnalyze}
                         disabled={!productDescription}
@@ -285,8 +288,17 @@ const App: React.FC = () => {
                             }
                         `}
                     >
-                        <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                        开始分析 & 改写
+                        {appState === AppState.SUCCESS || analysisResult ? (
+                          <>
+                             <RotateCcw className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500" />
+                             重新生成 (Regenerate)
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                            开始分析 & 改写
+                          </>
+                        )}
                     </button>
                 )}
 
