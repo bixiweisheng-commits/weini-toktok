@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AnalysisResult } from '../types';
 import { Copy, Sparkles, MessageSquare, Video, Layers, Check, FileText, Volume2 } from 'lucide-react';
 
@@ -108,6 +108,25 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ data }) => {
 
   const structure = data.structure || [];
 
+  // Robust Fallback Logic for Sora Prompt
+  // If the 'consolidatedSoraPrompt' string is empty, reconstruct it from the 'structure' array.
+  const displaySoraPrompt = useMemo(() => {
+    // 1. If main prompt exists and is valid, use it.
+    if (data.consolidatedSoraPrompt && data.consolidatedSoraPrompt.trim().length > 10) {
+      return data.consolidatedSoraPrompt;
+    }
+
+    // 2. Fallback: Build from structure array
+    if (structure && structure.length > 0) {
+      return structure
+        .map((s, i) => `Shot ${i + 1} (${s.timestamp || '0s'}): ${s.soraPrompt || s.visualDescription}`)
+        .join('\n\n');
+    }
+
+    // 3. Fallback: Error message
+    return "未能生成提示词，请重试或检查视频内容。(Prompt generation incomplete)";
+  }, [data.consolidatedSoraPrompt, structure]);
+
   return (
     <div className="space-y-6 animate-fade-in pb-10">
       
@@ -157,7 +176,7 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ data }) => {
               <h3 className="font-bold text-cyan-100">Sora 2 分镜提示词 (Storyboard Prompt)</h3>
             </div>
             <button 
-              onClick={() => copyToClipboard(data.consolidatedSoraPrompt, 'sora')}
+              onClick={() => copyToClipboard(displaySoraPrompt, 'sora')}
               className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5"
             >
               {copiedSection === 'sora' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
@@ -168,7 +187,7 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ data }) => {
             <div className="bg-[#09090b] rounded-lg p-5 border border-cyan-500/20 relative group">
                 {/* Pre-wrap and specialized font for script reading */}
                 <p className="text-cyan-100/90 text-sm leading-6 font-mono whitespace-pre-wrap select-all">
-                    {data.consolidatedSoraPrompt}
+                    {displaySoraPrompt}
                 </p>
             </div>
             <div className="mt-3 flex items-start gap-2 text-xs text-yellow-500/80 bg-yellow-500/10 p-2 rounded border border-yellow-500/20">

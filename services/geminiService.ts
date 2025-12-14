@@ -77,9 +77,9 @@ export const analyzeVideo = async (
         - **Your Output**: A high-pressure water hose blasting the watch (to show strength/durability).
     - **Logic**: Match the *intent* and *impact* of the shot, but use actions relevant to *my* product.
 
-    **TASK 3: GENERATE OUTPUTS**
-    1. **Structure Breakdown**: A detailed list of every shot/segment.
-    2. **Consolidated Sora Prompt**: A single, chronologically structured prompt script.
+    **TASK 3: GENERATE OUTPUTS (CRITICAL)**
+    1. **Structure Breakdown**: A detailed list of every shot/segment. DO NOT RETURN EMPTY ARRAY.
+    2. **Consolidated Sora Prompt**: A single, chronologically structured prompt script. DO NOT RETURN EMPTY STRING.
        - Use specific timestamps: "At 00:00, [Action]... At 00:03, cut to [Action]..."
        - Use cinematography terms: *POV, Macro, Dolly In, Speed Ramp, Match Cut*.
        - Describe specific **Motion**: Fluid simulation, cloth physics, rigid body dynamics.
@@ -98,7 +98,7 @@ export const analyzeVideo = async (
         parts: parts,
       },
       config: {
-        systemInstruction: "You are a Viral Video Architect. You reverse-engineer viral videos to create templates for new products. You focus on Rhythm, Pacing, and Camera Movement. You never output generic descriptions; you output precise, time-coded visual instructions.",
+        systemInstruction: "You are a Viral Video Architect. You reverse-engineer viral videos. IMPORTANT: You must ALWAYS populate the 'structure' array and 'consolidatedSoraPrompt' string. Never return them empty. If you are unsure, generate a best-guess based on the video flow.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
